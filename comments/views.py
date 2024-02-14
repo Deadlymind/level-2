@@ -1,14 +1,16 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
+from rest_framework import generics
 from .models import Post, Comment
 from .forms import CommentForm
+from .serializers import PostSerializer
 
 def post_detail(request, post_id):
-    post = Post.objects.get(pk=post_id)
+    post = get_object_or_404(Post, pk=post_id)
     comments = Comment.objects.filter(post=post)
     return render(request, 'comments/post_detail.html', {'post': post, 'comments': comments})
 
-def add_comments(request, post_id):
-    post = Post.objects.get(pk=post_id)
+def add_comment(request, post_id):
+    post = get_object_or_404(Post, pk=post_id)
 
     if request.method == 'POST':
         form = CommentForm(request.POST)
@@ -20,4 +22,8 @@ def add_comments(request, post_id):
     else:
         form = CommentForm()
 
-    return render(request, 'comments/add_comments.html', {'form': form, 'post': post})
+    return render(request, 'comments/post_detail.html', {'form': form, 'post': post})
+
+class PostDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
